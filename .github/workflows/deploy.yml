@@ -1,0 +1,47 @@
+name: GitHub Pages Deploy (Multi-Env Domains)
+
+on:
+  push:
+    branches:
+      - development
+      - staging
+      - main
+  pull_request:
+    branches:
+      - staging
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    environment: ${{ github.ref_name }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # 🏷 Create CNAME for GitHub Pages
+      - name: Configure CNAME
+        env:
+          DOMAIN: ${{ vars.DOMAIN }}
+        run: |
+          echo "$DOMAIN" > CNAME
+
+      # 📦 Upload artifact
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      # 🚀 Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
